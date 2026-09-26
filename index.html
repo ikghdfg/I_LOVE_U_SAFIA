@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+  />
+  <meta name="theme-color" content="#090509" />
+  <title>I LOVE U SAPHIA</title>
+
+  <style>
+    :root {
+      --pink: #ff5f98;
+      --pink-light: #ffc0d6;
+      --bg: #070507;
+      --safe-top: max(14px, env(safe-area-inset-top));
+      --safe-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      color: #fff;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overscroll-behavior: none;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      height: 100dvh;
+      min-height: 100%;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(102, 26, 62, 0.72), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(74, 14, 43, 0.55), transparent 46%),
+        #050405;
+    }
+
+    /* Частицы */
+    #canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      transition: opacity 0.75s ease;
+      touch-action: none;
+    }
+
+    #canvas.over-menu {
+      z-index: 14;
+    }
+
+    #canvas.is-hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Подсказка первого экрана */
+    .tap-hint {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      bottom: calc(8% + var(--safe-bottom));
+      width: max-content;
+      max-width: calc(100% - 48px);
+      transform: translateX(-50%);
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 14px;
+      text-align: center;
+      letter-spacing: 0.02em;
+      animation: hintPulse 1.8s ease-in-out infinite;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+
+    .tap-hint.hide {
+      opacity: 0 !important;
+      visibility: hidden;
+      animation: none !important;
+      pointer-events: none;
+    }
+
+    @keyframes hintPulse {
+      0%, 100% { opacity: 0.45; transform: translateX(-50%) translateY(0); }
+      50% { opacity: 1; transform: translateX(-50%) translateY(-5px); }
+    }
+
+    /* Сообщение после формирования сердца */
+    .message {
+      position: absolute;
+      z-index: 8;
+      left: 18px;
+      right: 18px;
+      bottom: calc(10% + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(28px);
+      pointer-events: none;
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .message.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .message h1 {
+      font-size: clamp(32px, 9vw, 44px);
+      text-shadow: 0 0 24px rgba(255, 77, 136, 0.85);
+    }
+
+    .message p {
+      max-width: 340px;
+      margin-top: 10px;
+      color: rgba(255, 255, 255, 0.83);
+      font-size: 17px;
+      line-height: 1.4;
+    }
+
+    .main-button {
+      margin-top: 24px;
+      padding: 15px 34px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--pink), #ff9fbe);
+      box-shadow: 0 12px 34px rgba(255, 77, 136, 0.42);
+      font-weight: 750;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .main-button:active {
+      transform: scale(0.96);
+      box-shadow: 0 6px 18px rgba(255, 77, 136, 0.38);
+    }
+
+    /* Главное меню историй */
+    .story-menu {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      overflow: hidden auto;
+      padding:
+        calc(var(--safe-top) + 18px)
+        18px
+        calc(var(--safe-bottom) + 24px);
+      background:
+        radial-gradient(circle at 50% 25%, rgba(77, 19, 46, 0.68), transparent 38%),
+        linear-gradient(180deg, #100911, #050405);
+      opacity: 0;
+      transition: opacity 0.55s ease;
+      touch-action: pan-y;
+      scrollbar-width: none;
+    }
+
+    .story-menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .story-menu.visible {
+      opacity: 1;
+    }
+
+    .menu-header {
+      position: relative;
+      z-index: 13;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .story-menu.ready .menu-header {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .menu-header h2 {
+      font-size: clamp(26px, 7vw, 34px);
+    }
+
+    .menu-header p {
+      margin-top: 7px;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 14px;
+    }
+
+    .story-grid {
+      position: relative;
+      z-index: 12;
+      display: grid;
+      gap: 14px;
+      width: 100%;
+      max-width: 560px;
+      margin: 24px auto 0;
+      align-content: start;
+    }
+
+    .story-card {
+      position: relative;
+      min-width: 0;
+      height: var(--card-height, 170px);
+      overflow: hidden;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.34);
+      opacity: 0;
+      transform: scale(0.82) translateY(20px);
+      transition:
+        opacity 0.68s ease,
+        transform 0.68s cubic-bezier(.2,.8,.2,1),
+        box-shadow 0.25s ease;
+      touch-action: manipulation;
+    }
+
+    .story-card.show {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    .story-card:active {
+      transform: scale(0.97);
+    }
+
+    .story-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+    .story-card img,
+    .story-card video {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      transform: scale(1.03);
+    }
+
+    .story-card-shade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 46%, rgba(0, 0, 0, 0.8));
+      pointer-events: none;
+    }
+
+    .story-card-info {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 11px;
+      z-index: 2;
+    }
+
+    .story-card-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 27px;
+      height: 27px;
+      margin-bottom: 6px;
+      padding: 0 8px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.48);
+      backdrop-filter: blur(8px);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .story-card-title {
+      display: -webkit-box;
+      overflow: hidden;
+      font-size: 14px;
+      font-weight: 750;
+      line-height: 1.24;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    /* Полноэкранная история */
+    .story-viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      place-items: center;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      touch-action: none;
+    }
+
+    .story-viewer.visible {
+      opacity: 1;
+    }
+
+    .story-shell {
+      position: relative;
+      width: min(100vw, 430px);
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      background: #0b0b0b;
+      transform-origin: center;
+      will-change: transform, border-radius, opacity;
+    }
+
+    @media (min-width: 700px) {
+      .story-shell {
+        height: min(92dvh, 860px);
+        border-radius: 28px;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75);
+      }
+    }
+
+    .story-media,
+    .story-media img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .story-media video {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      display: none;
+    }
+
+    .story-media {
+      overflow: hidden;
+      background: #090709;
+      isolation: isolate;
+    }
+
+    /* Размытый фон заполняет свободное место, но сама фотография не обрезается. */
+    .story-media::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      inset: -32px;
+      background-image: var(--story-background, none);
+      background-position: center;
+      background-size: cover;
+      filter: blur(28px);
+      opacity: 0.52;
+      transform: scale(1.1);
+    }
+
+    .story-media::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.2);
+      pointer-events: none;
+    }
+
+    .story-media img {
+      z-index: 2;
+      display: block;
+      object-fit: contain;
+      object-position: center;
+      transition: opacity 0.28s ease, transform 0.55s ease;
+    }
+
+    .story-media img.changing {
+      opacity: 0.15;
+      transform: scale(0.985);
+    }
+
+    .story-gradient {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.52), transparent 19%),
+        linear-gradient(180deg, transparent 48%, rgba(0, 0, 0, 0.84));
+      pointer-events: none;
+    }
+
+    .story-top {
+      position: absolute;
+      z-index: 4;
+      top: var(--safe-top);
+      left: 14px;
+      right: 14px;
+    }
+
+    .progress {
+      display: flex;
+      gap: 5px;
+      width: 100%;
+    }
+
+    .progress-segment {
+      position: relative;
+      flex: 1;
+      height: 3px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: #fff;
+    }
+
+    .progress-segment.done .progress-fill {
+      width: 100%;
+    }
+
+    .story-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .volume-control {
+      position: relative;
+      z-index: 7;
+      flex: 0 0 auto;
+    }
+
+    .volume-button {
+      font-size: 17px;
+    }
+
+    .volume-panel {
+      position: absolute;
+      top: 44px;
+      left: 0;
+      display: flex;
+      width: 146px;
+      height: 42px;
+      align-items: center;
+      padding: 0 13px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      border-radius: 14px;
+      background: rgba(8, 8, 8, 0.72);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px) scale(0.96);
+      transform-origin: top left;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    }
+
+    .volume-control:hover .volume-panel,
+    .volume-control:focus-within .volume-panel,
+    .volume-control.open .volume-panel {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+    }
+
+    .volume-slider {
+      width: 100%;
+      height: 24px;
+      accent-color: #fff;
+      cursor: pointer;
+      touch-action: pan-x;
+    }
+
+
+    .story-counter {
+      display: inline-flex;
+      align-items: center;
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.38);
+      backdrop-filter: blur(10px);
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .story-now-title {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      color: rgba(255, 255, 255, 0.94);
+      font-size: 14px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .icon-button {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.42);
+      backdrop-filter: blur(10px);
+      font-size: 23px;
+    }
+
+    .story-content {
+      position: absolute;
+      z-index: 4;
+      left: 18px;
+      right: 18px;
+      bottom: calc(var(--safe-bottom) + 18px);
+      pointer-events: none;
+    }
+
+    .story-kicker {
+      color: rgba(255, 255, 255, 0.68);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .story-short {
+      max-width: 360px;
+      margin-top: 8px;
+      font-size: clamp(22px, 6vw, 29px);
+      font-weight: 760;
+      line-height: 1.16;
+      text-shadow: 0 3px 18px rgba(0, 0, 0, 0.8);
+    }
+
+    .story-details {
+      margin-top: 11px;
+      pointer-events: auto;
+    }
+
+    .read-more-link {
+      display: inline;
+      padding: 0;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.66);
+      font-size: 12px;
+      font-weight: 550;
+      line-height: 1.3;
+      text-align: left;
+      text-decoration: none;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+    }
+
+    .read-more-link:active {
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .music-meta {
+      display: flex;
+      cursor: default;
+      user-select: none;
+      width: min(100%, 330px);
+      min-width: 0;
+      align-items: center;
+      gap: 7px;
+      margin-top: 10px;
+      padding: 0;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.78);
+      text-align: left;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+    }
+
+    .music-note {
+      display: inline-grid;
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+      place-items: center;
+      font-size: 14px;
+      transform-origin: center;
+    }
+
+    .music-meta.is-playing .music-note {
+      animation: musicNote 1.1s ease-in-out infinite;
+    }
+
+    @keyframes musicNote {
+      0%, 100% { transform: rotate(-7deg) translateY(0); }
+      50% { transform: rotate(7deg) translateY(-2px); }
+    }
+
+    .music-name {
+      min-width: 0;
+      overflow: hidden;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .icon-button:active {
+      transform: scale(0.97);
+    }
+
+    /* Текст поверх фото, фото остаётся видимым */
+    .text-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: none;
+      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      transition: opacity 0.28s ease;
+      touch-action: pan-y;
+    }
+
+    .text-modal.show {
+      opacity: 1;
+    }
+
+    .text-sheet {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 10px);
+      max-height: 72%;
+      overflow: auto;
+      padding: 22px 20px 28px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 26px;
+      background: rgba(12, 9, 12, 0.78);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.52);
+      transform: translateY(24px);
+      transition: transform 0.32s cubic-bezier(.2,.8,.2,1);
+      scrollbar-width: none;
+    }
+
+    .text-sheet::-webkit-scrollbar {
+      display: none;
+    }
+
+    .text-modal.show .text-sheet {
+      transform: translateY(0);
+    }
+
+    .text-sheet-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .text-sheet-head h3 {
+      min-width: 0;
+      flex: 1;
+      font-size: 25px;
+    }
+
+    .text-sheet p {
+      margin-top: 17px;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 18px;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+
+    .text-close {
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
+    }
+
+    .hidden-audio {
+      display: none;
+    }
+
+    @media (max-width: 380px) {
+      .story-menu {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .story-grid {
+        gap: 11px;
+      }
+
+      .story-card {
+        border-radius: 18px;
+      }
+
+      .story-content {
+        left: 15px;
+        right: 15px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main id="app">
+    <canvas id="canvas" aria-hidden="true"></canvas>
+
+    <div class="tap-hint" id="tapHint">Нажми на экран ✨</div>
+
+    <section class="message" id="message" aria-live="polite">
+      <h1>Сафия ❤️</h1>
+      <p>Я сделал кое-что для тебя</p>
+      <button class="main-button" id="openMemoryButton" type="button">Готова?</button>
+    </section>
+
+    <section class="story-menu" id="storyMenu" aria-label="Наши истории">
+      <header class="menu-header">
+        <h2>Наша история ❤️</h2>
+        <p>Открой любой момент</p>
+      </header>
+      <div class="story-grid" id="storyGrid"></div>
+    </section>
+
+    <section class="story-viewer" id="storyViewer" aria-hidden="true">
+      <article class="story-shell" id="storyShell">
+        <div class="story-media">
+          <img id="storyImage" alt="" />
+          <video id="storyVideo" playsinline muted></video>
+        </div>  
+
+        <div class="story-gradient"></div>
+
+        <div class="story-top">
+          <div class="progress" id="progress" aria-label="Прогресс историй"></div>
+
+          <div class="story-toolbar">
+            <div class="volume-control" id="volumeControl">
+              <button class="icon-button volume-button" id="volumeButton" type="button" aria-label="Громкость музыки">
+                <span id="volumeIcon" aria-hidden="true">🔊</span>
+              </button>
+              <div class="volume-panel" id="volumePanel">
+                <input
+                  class="volume-slider"
+                  id="volumeSlider"
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value="0.65"
+                  aria-label="Громкость музыки"
+                />
+              </div>
+            </div>
+
+            <div class="story-counter" id="storyCounter">1 / 1</div>
+            <div class="story-now-title" id="storyNowTitle"></div>
+            <button class="icon-button" id="closeStoryButton" type="button" aria-label="Закрыть">×</button>
+          </div>
+        </div>
+
+        <div class="story-content">
+          <div class="story-kicker" id="storyKicker">Наш момент</div>
+          <div class="story-short" id="storyShort"></div>
+
+          <div class="story-details">
+            <button class="read-more-link" id="readMoreButton" type="button">
+              смотреть полностью
+            </button>
+
+            <div class="music-meta" id="musicMeta" aria-live="polite">
+              <span class="music-note" aria-hidden="true">♪</span>
+              <span class="music-name" id="musicName">Музыка</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-modal" id="textModal" aria-hidden="true">
+          <div class="text-sheet" id="textSheet">
+            <div class="text-sheet-head">
+              <h3 id="fullTextTitle"></h3>
+              <button class="icon-button text-close" id="closeTextButton" type="button" aria-label="Закрыть текст">×</button>
+            </div>
+            <p id="fullText"></p>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <audio class="hidden-audio" id="audioPlayer" preload="metadata"></audio>
+  </main>
+
+  <script>
+    "use strict";
+
+    /*
+      =========================================================
+      РЕДАКТИРУЙ ТОЛЬКО ЭТОТ МАССИВ
+      Добавляй или удаляй объекты — карточки, полоски и частицы
+      пересчитаются автоматически.
+
+      image: путь к вертикальной фотографии, желательно 9:16.
+      music: путь к mp3-файлу. Можно оставить пустую строку.
+      duration: минимальная длительность истории в миллисекундах.
+      =========================================================
+    */
+
+    const stories = [
+      {
+        image: "photos/photo1.jpg",
+        title: "19 января. Начало",
+        kicker: "В тот вечер я потерял ключи",
+        short: "Но нашёл кое-что намного ценнее - тебя.",
+        text: `Мы были знакомы с тобой еще раньше, но по нистоящему общаться начали только тогда. Тогда мы с тобой познакомились и провели весь вечер вместе, за что нам с тобой потом прилетел втык. помнишь?) День рождение Ани стал для нас с тобой началом чего-то нового. Чего-то тёплого, счастливого и очень важного.
+
+Я тогда потерял ключи и провел все ночь шатаюсь по городу, в ожидании пока родители проснуться и передадут мне запасные, а утром мне нужно было ехать в универ кхаха) 
+
+Сколько бы неудобств не принесла эта потеря ключей, но в тот вечер я нашел кое что более ценное, чем эти несчастные ключи`,
+        music: "music/Sweater Weather.mp3",
+        musicTitle: "The Neighbourhood - Sweater Weather",
+        duration: 18000
+      },
+
+      {
+        image: "photos/photo2.jpg",
+        title: "22 марта. Мы",
+        kicker: "Чумачечая весна",
+        short: "Соединила наши сердца",
+        text: `22 марта - день, когда мы с тобой начали встречаться.
+
+Я уже давно хотел тебя поцеловать, но всё никак не решался. Я очень волновался и постоянно думал о том, как всё пройдёт.
+
+До сих пор помню, как ты пришла, как я смотрел на тебя, как волновался. А потом мы поцеловались - и в тот момент я почувствовал себя самым счастливым человеком на земле.
+
+С того дня это чувство никуда не исчезло.
+
+Я люблю тебя.`,
+        music: "music/Чумачечая весна.mp3",
+        musicTitle: "Потап и Настя - Чумачечая весна",
+        duration: 18000
+      },
+
+      {
+        image: "photos/photo3.jpg",
+        title: "Я тебе кое-что сказать хочу",
+        kicker: "Рядом с тобой",
+        short: "мне всегда мало времени",
+        text: `И вот мы вместе.
+
+Мы любим друг друга, проводим время рядом и совершенно не хотим отходить друг от друга ни на шаг. Иногда мне кажется, что сколько бы времени мы ни провели вместе, его всё равно будет мало.
+
+Я так рад, что ты появилась в моей жизни. С тобой даже самые обычные дни становятся особенными, а простые моменты превращаются в воспоминания, которые хочется хранить.
+
+Мне нравится быть рядом с тобой. Разговаривать, смеяться, куда-то идти или просто молчать вместе.
+
+Рядом с тобой я чувствую себя по-настоящему счастливым.`,
+        music: "music/Шоколадка.mp3",
+        musicTitle: "Минаева - Шоколадка",
+        duration: 18000
+      },
+
+      {
+        image: "photos/photo4.jpg",
+        title: "Наша вселенная",
+        kicker: "Из всех возможных миров я рад",
+        short: "Что оказался именно в этом и рядом с тобой",
+        text: `Сколько случайностей должно было произойти, чтобы мы встретились и не прошли мимо друг друга?
+
+Возможно, где-то существуют тысячи других вселенных и тысячи других вариантов нашей жизни. Но я счастлив, что мы оказались именно в той вселенной, где познакомились, стали ближе и выбрали друг друга.
+
+Для меня эта вселенная — самая лучшая.
+
+Потому что в ней есть ты.`,
+        music: "music/Вселенная бесконечна.mp3",
+        musicTitle: "Noize MC - Вселенная бесконечна?",
+        duration: 18000
+      },
+      
+
+      {
+        image: "photos/photo5.jpg",
+        title: "Моя половина",
+        kicker: "Ты и я",
+        short: "Одно целое",
+        text: `Сафия, ты моя половинка, часть меня. Хочу быть с тобой каждый день, каждый час, каждую минуту. 
+Хочу заботиться о тебе, хочу  всегда дарить тебе улыбку. 
+Я, честно, надеюсь, что тебе понравилось эти сторис. Я вложил в них часть себя. Люблю тебя`,
+        music: "music/Половина моя.mp3",
+        musicTitle: "Miyagi & Эндшпиль - Половина моя",
+        duration: 18000
+      },
+
+      {
+        image: "photos/dr.jpg",
+        title: "С днём рождения, Сафиюшка ❤️",
+        kicker: "Сегодня день рождения",
+        short: "У самого прекрасного человека в моей жизни",
+        text: `Сегодня твой день.
+Я хочу, чтобы ты всегда помнила, какая ты прекрасная. Не только сегодня, когда все поздравляют тебя и говорят тёплые слова, а каждый обычный день.
+
+Я люблю твою улыбку, твой смех, твой характер, твои привычки и даже те маленькие странности, которые делают тебя именно тобой.
+
+Я желаю тебе всегда чувствовать себя счастливой. Желаю, чтобы исполнялись твои мечты, чтобы рядом были хорошие люди, а впереди тебя ждало как можно больше прекрасных моментов.
+
+И я очень хочу быть рядом, чтобы разделить эти моменты с тобой.
+
+С днём рождения, Сафийка.`,
+        music: "music/Heads will roll.mp3",
+        musicTitle: "Heads will roll - a-trak remix radio edit",
+        duration: 18000
+      },
+
+      {
+        image: "photos/last.jpg",
+        title: "Наш белый лист",
+        kicker: "Давай заполним его",
+        short: "Cамыми счастливыми воспоминаниями",
+        text: `Белый лист?
+
+Нет. Это наш белый лист.
+
+И только мы решаем, что на нём появится. Мы можем рисовать, писать, ошибаться, начинать заново и создавать нашу историю именно такой, какой захотим.
+
+Я хочу, чтобы впереди у нас было ещё много счастливых дней.
+
+Давай продолжим писать эту историю вместе. Так, чтобы однажды, оглянувшись назад, мы увидели на этом листе целую жизнь, наполненную нашими самыми тёплыми воспоминаниями.
+
+Ты даже не представляешь, как сильно я тебя люблю.
+
+Ты самое прекрасное, что произошло со мной в этой вселенной. И среди всех возможных историй я снова и снова выбирал бы нашу.`,
+        music: "music/Memories.mp3",
+        musicTitle: "David Guetta - Memories",
+        duration: 18000
+      },     
+
+      {
+        image: "photos/ksy.jpg",
+        title: "Ты и Клюша",
+        kicker: "Помню, раньше дулся",
+        short: "Аж лопалась рубашка",
+        text: `Помню, раньше дулся, аж лопалась рубашка
+Что однокурсницы предпочитают мне папашку
+Он им дарит платья всякие, цветы и суши 
+Жую в общаге сушки, покуда эти шлюшки 
+Сидят, развесив уши, в дорогих машинах 
+Одной хотел стать мужем — не разрешила`,
+        music: "music/Шиншиллы.mp3",
+        musicTitle: "ЛСП - Шиншиллы",
+        duration: 18000
+      },      
+
+      {
+        image: "photos/Ali.jpg",
+        title: "Ты и Алина",
+        kicker: "Сафиюшка",
+        short: "Моя милая девочка",
+        text: `Сафиюшка, моя милая девочка, с 20-тилетием, солнышко❤️
+обожаю тебя и всегда восхищаюсь тобой✨
+ты такая куколка у меня💋
+будь счастлива!
+я обожаю эту фотку!!!🥰🥰🥰
+целую, обнимаю❤️💋`,
+        music: "music/назову планету.mp3",
+        musicTitle: "София Ротару - Я назову планету именем твоим",
+        duration: 18000
+      },      
+
+      {
+        image: "photos/video.mp4",
+        title: "Ты и Аня",
+        kicker: "❤️",
+        short: "❤️❤️",
+        text: ``,
+        music: "",
+        musicTitle: " ",
+        duration: 18000
+      }
+
+
+    ];
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const tapHint = document.getElementById("tapHint");
+    const message = document.getElementById("message");
+    const openMemoryButton = document.getElementById("openMemoryButton");
+
+    const storyMenu = document.getElementById("storyMenu");
+    const storyGrid = document.getElementById("storyGrid");
+
+    const storyViewer = document.getElementById("storyViewer");
+    const storyShell = document.getElementById("storyShell");
+    const storyMedia = document.querySelector(".story-media");
+    const storyImage = document.getElementById("storyImage");
+    const storyVideo = document.getElementById("storyVideo");
+    const storyCounter = document.getElementById("storyCounter");
+    const storyNowTitle = document.getElementById("storyNowTitle");
+    const storyKicker = document.getElementById("storyKicker");
+    const storyShort = document.getElementById("storyShort");
+    const progress = document.getElementById("progress");
+
+    const closeStoryButton = document.getElementById("closeStoryButton");
+    const volumeControl = document.getElementById("volumeControl");
+    const volumeButton = document.getElementById("volumeButton");
+    const volumeIcon = document.getElementById("volumeIcon");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const readMoreButton = document.getElementById("readMoreButton");
+    const musicMeta = document.getElementById("musicMeta");
+    const musicName = document.getElementById("musicName");
+
+    const textModal = document.getElementById("textModal");
+    const textSheet = document.getElementById("textSheet");
+    const fullTextTitle = document.getElementById("fullTextTitle");
+    const fullText = document.getElementById("fullText");
+    const closeTextButton = document.getElementById("closeTextButton");
+
+    const audioPlayer = document.getElementById("audioPlayer");
+
+    let width = 0;
+    let height = 0;
+    let deviceScale = 1;
+
+    let mode = "RAIN";
+    let heartStarted = false;
+    let particles = [];
+    let currentStory = 0;
+    let storyCards = [];
+
+    let progressFrame = 0;
+    let progressRunning = false;
+    let progressStartedAt = 0;
+    let progressElapsed = 0;
+    let textReading = false;
+
+    let pointerStartX = 0;
+    let pointerStartY = 0;
+    let pointerStartedOnControl = false;
+
+    const symbols = ["♥", "♡", "✦", "✨", "∞", "❤", "☾", "⋆", "愛", "S"];
+
+    function resizeCanvas() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+
+      canvas.width = Math.round(width * deviceScale);
+      canvas.height = Math.round(height * deviceScale);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      ctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+      if (mode === "RAIN") {
+        particles.forEach((particle) => {
+          particle.x = Math.min(particle.x, width);
+          particle.y = Math.min(particle.y, height);
+        });
+      }
+    }
+
+    function createParticles() {
+      const count = Math.min(520, Math.max(280, Math.floor((width * height) / 1350)));
+
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        speed: 0.8 + Math.random() * 2.3,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)],
+        size: 12 + Math.random() * 16,
+        targetX: null,
+        targetY: null,
+        moving: false,
+        alpha: 0.48 + Math.random() * 0.52,
+        rotation: (Math.random() - 0.5) * 0.4
+      }));
+    }
+
+    function makeHeartPoints() {
+      const points = [];
+      const scale = Math.min(width, height) / 38;
+      const centerX = width / 2;
+      const centerY = height * 0.42;
+
+      for (let t = 0; t < Math.PI * 2; t += 0.025) {
+        const x = 16 * Math.pow(Math.sin(t), 3);
+        const y = -(
+          13 * Math.cos(t) -
+          5 * Math.cos(2 * t) -
+          2 * Math.cos(3 * t) -
+          Math.cos(4 * t)
+        );
+
+        points.push({
+          x: centerX + x * scale,
+          y: centerY + y * scale
+        });
+      }
+
+      return points;
+    }
+
+    function assignParticlesToPoints(points, speed = 0.035) {
+      particles.forEach((particle, index) => {
+        const point = points[index % points.length];
+        particle.targetX = point.x;
+        particle.targetY = point.y;
+        particle.moving = true;
+        particle.ease = speed + Math.random() * 0.012;
+      });
+    }
+
+    function buildHeart() {
+      if (heartStarted || mode !== "RAIN") return;
+
+      heartStarted = true;
+      mode = "HEART";
+      tapHint.classList.add("hide");
+      tapHint.setAttribute("aria-hidden", "true");
+      window.setTimeout(() => tapHint.remove(), 450);
+
+      assignParticlesToPoints(makeHeartPoints(), 0.028);
+
+      window.setTimeout(() => {
+        message.classList.add("show");
+      }, 3000);
+    }
+
+    function explodeHeart() {
+      mode = "EXPLODE";
+
+      particles.forEach((particle) => {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.max(width, height) * (0.28 + Math.random() * 0.45);
+
+        particle.targetX = particle.x + Math.cos(angle) * distance;
+        particle.targetY = particle.y + Math.sin(angle) * distance;
+        particle.ease = 0.045 + Math.random() * 0.02;
+        particle.moving = true;
+      });
+    }
+
+    function configureGrid() {
+      const count = Math.max(stories.length, 1);
+      const columns = count === 1 ? 1 : count <= 4 ? 2 : 3;
+      const rows = Math.ceil(count / columns);
+      const gap = width <= 380 ? 11 : 14;
+      const availableWidth = Math.min(width - 36, 560);
+      const cardWidth = (availableWidth - gap * (columns - 1)) / columns;
+      const availableHeight = Math.max(360, height - 150 - 26 * (rows - 1));
+      const cardHeightByScreen = availableHeight / rows;
+      const preferredHeight = cardWidth * 1.22;
+      const cardHeight = Math.max(104, Math.min(preferredHeight, cardHeightByScreen));
+
+      storyGrid.style.gridTemplateColumns = `repeat(${columns}, minmax(0, 1fr))`;
+      storyGrid.style.setProperty("--card-height", `${cardHeight}px`);
+    }
+
+    function createStoryCards() {
+      storyGrid.innerHTML = "";
+
+      stories.forEach((story, index) => {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "story-card";
+        card.dataset.index = String(index);
+        card.setAttribute("aria-label", `Открыть историю ${index + 1}: ${story.title}`);
+
+        let image;
+
+        if (isVideoFile(story.image)) {
+          image = document.createElement("video");
+
+          image.src = story.image;
+          image.muted = true;
+          image.playsInline = true;
+          image.preload = "metadata";
+
+          image.addEventListener("loadeddata", () => {
+            image.currentTime = 0.1;
+          });
+
+        } else {
+          image = document.createElement("img");
+          image.src = story.image;
+          image.alt = story.title;
+        }
+
+        image.style.width = "100%";
+        image.style.height = "100%";
+        image.style.objectFit = "cover";
+
+        const shade = document.createElement("span");
+        shade.className = "story-card-shade";
+
+        const info = document.createElement("span");
+        info.className = "story-card-info";
+
+        const number = document.createElement("span");
+        number.className = "story-card-number";
+        number.textContent = `${index + 1} / ${stories.length}`;
+
+        const title = document.createElement("span");
+        title.className = "story-card-title";
+        title.textContent = story.title;
+
+        info.append(number, title);
+        card.append(image, shade, info);
+
+        card.addEventListener("click", () => openStory(index, card));
+        storyGrid.append(card);
+      });
+
+      storyCards = Array.from(storyGrid.querySelectorAll(".story-card"));
+    }
+
+    function roundedRectPerimeter(rect, step = 11) {
+      const points = [];
+      const radius = Math.min(22, rect.width * 0.16, rect.height * 0.16);
+      const left = rect.left;
+      const right = rect.right;
+      const top = rect.top;
+      const bottom = rect.bottom;
+
+      for (let x = left + radius; x <= right - radius; x += step) {
+        points.push({ x, y: top });
+        points.push({ x, y: bottom });
+      }
+
+      for (let y = top + radius; y <= bottom - radius; y += step) {
+        points.push({ x: left, y });
+        points.push({ x: right, y });
+      }
+
+      const corners = [
+        { cx: left + radius, cy: top + radius, start: Math.PI, end: Math.PI * 1.5 },
+        { cx: right - radius, cy: top + radius, start: Math.PI * 1.5, end: Math.PI * 2 },
+        { cx: right - radius, cy: bottom - radius, start: 0, end: Math.PI * 0.5 },
+        { cx: left + radius, cy: bottom - radius, start: Math.PI * 0.5, end: Math.PI }
+      ];
+
+      corners.forEach((corner) => {
+        for (let angle = corner.start; angle <= corner.end; angle += 0.18) {
+          points.push({
+            x: corner.cx + Math.cos(angle) * radius,
+            y: corner.cy + Math.sin(angle) * radius
+          });
+        }
+      });
+
+      return points;
+    }
+
+    function assignParticlesToStoryFrames() {
+      const frameGroups = storyCards.map((card) => roundedRectPerimeter(card.getBoundingClientRect()));
+
+      particles.forEach((particle, index) => {
+        const storyIndex = index % frameGroups.length;
+        const group = frameGroups[storyIndex];
+        const pointIndex = Math.floor(index / frameGroups.length) % group.length;
+        const point = group[pointIndex];
+
+        particle.targetX = point.x;
+        particle.targetY = point.y;
+        particle.ease = 0.032 + Math.random() * 0.012;
+        particle.moving = true;
+      });
+    }
+
+    function openMemory() {
+      if (mode !== "HEART") return;
+
+      message.classList.remove("show");
+      openMemoryButton.disabled = true;
+      explodeHeart();
+
+      window.setTimeout(() => {
+        configureGrid();
+        createStoryCards();
+
+        storyMenu.style.display = "block";
+        requestAnimationFrame(() => {
+          storyMenu.classList.add("visible");
+        });
+
+        canvas.classList.add("over-menu");
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            mode = "FRAMES";
+            assignParticlesToStoryFrames();
+          });
+        });
+      }, 720);
+
+      window.setTimeout(() => {
+        storyMenu.classList.add("ready");
+
+        storyCards.forEach((card, index) => {
+          window.setTimeout(() => card.classList.add("show"), index * 120);
+        });
+
+        canvas.classList.add("is-hidden");
+        mode = "MENU";
+      }, 3100);
+    }
+
+    function createProgressSegments() {
+      progress.innerHTML = "";
+
+      stories.forEach((_, index) => {
+        const segment = document.createElement("div");
+        segment.className = "progress-segment";
+
+        if (index < currentStory) {
+          segment.classList.add("done");
+        }
+
+        const fill = document.createElement("div");
+        fill.className = "progress-fill";
+        segment.append(fill);
+        progress.append(segment);
+      });
+    }
+
+    function updateProgressVisual(value) {
+      const segments = Array.from(progress.children);
+
+      segments.forEach((segment, index) => {
+        const fill = segment.firstElementChild;
+
+        if (index < currentStory) {
+          fill.style.width = "100%";
+        } else if (index === currentStory) {
+          fill.style.width = `${Math.min(100, Math.max(0, value * 100))}%`;
+        } else {
+          fill.style.width = "0%";
+        }
+      });
+    }
+
+    function cancelProgress() {
+      progressRunning = false;
+      cancelAnimationFrame(progressFrame);
+    }
+
+    function getStoryDuration(story) {
+        if (isVideoFile(story.image) && storyVideo.duration) {
+          return storyVideo.duration * 1000;
+        }
+
+        const visibleTextLength =
+          `${story.short || ""} ${story.title || ""}`.trim().length;
+
+        const readingBasedDuration = 14000 + visibleTextLength * 70;
+        const configuredDuration = Number(story.duration) || 0;
+
+        return Math.min(
+          30000,
+          Math.max(16000, configuredDuration, readingBasedDuration)
+        );
+      }
+
+      storyVideo.addEventListener("loadedmetadata", () => {
+        if (mode === "STORY" && isVideoFile(stories[currentStory].image)) {
+          progressElapsed = 0;
+        }
+      });
+    function startProgress(reset = true) {
+      cancelProgress();
+
+      if (textReading || mode !== "STORY") return;
+
+      if (reset) {
+        progressElapsed = 0;
+        updateProgressVisual(0);
+      }
+
+      progressStartedAt = performance.now();
+      progressRunning = true;
+
+      const tick = (now) => {
+        if (!progressRunning || textReading) return;
+
+        const duration = getStoryDuration(stories[currentStory]);
+        const elapsed = progressElapsed + (now - progressStartedAt);
+        const ratio = elapsed / duration;
+
+        updateProgressVisual(ratio);
+
+        if (ratio >= 1) {
+          nextStory();
+          return;
+        }
+
+        progressFrame = requestAnimationFrame(tick);
+      };
+
+      progressFrame = requestAnimationFrame(tick);
+    }
+
+    function pauseProgress() {
+      if (!progressRunning) return;
+      progressElapsed += performance.now() - progressStartedAt;
+      cancelProgress();
+    }
+
+    function resumeProgress() {
+      if (progressRunning || textReading || mode !== "STORY") return;
+      startProgress(false);
+    }
+
+    function setVolume(value) {
+      const normalized = Math.min(1, Math.max(0, Number(value) || 0));
+      audioPlayer.volume = normalized;
+      volumeSlider.value = String(normalized);
+
+      if (normalized === 0) {
+        volumeIcon.textContent = "🔇";
+      } else if (normalized < 0.5) {
+        volumeIcon.textContent = "🔉";
+      } else {
+        volumeIcon.textContent = "🔊";
+      }
+
+      try {
+        localStorage.setItem("birthdayStoryVolume", String(normalized));
+      } catch {
+        // В приватном режиме сохранение может быть недоступно.
+      }
+    }
+
+    function restoreVolume() {
+      audioPlayer.loop = true;
+      let savedVolume = 0.65;
+      
+      try {
+        const rawSavedVolume = localStorage.getItem("birthdayStoryVolume");
+        if (rawSavedVolume !== null) {
+          const saved = Number(rawSavedVolume);
+          if (Number.isFinite(saved)) savedVolume = saved;
+        }
+      } catch {
+        // Используем значение по умолчанию.
+      }
+
+      setVolume(savedVolume);
+    }
+
+    function updateMusicInfo() {
+      const story = stories[currentStory];
+      storyVideo.pause();
+      storyVideo.currentTime = 0;
+      const hasMusic = Boolean(story.music);
+
+      musicMeta.hidden = !hasMusic;
+      musicMeta.classList.toggle("is-playing", hasMusic && !audioPlayer.paused);
+
+      if (!hasMusic) return;
+
+      musicName.textContent = story.musicTitle || "Музыка этой истории";
+    }
+
+    async function loadAndPlayMusic() {
+      const story = stories[currentStory];
+
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+
+      if (!story.music) {
+        audioPlayer.removeAttribute("src");
+        updateMusicInfo();
+        return;
+      }
+
+      audioPlayer.src = story.music;
+
+      try {
+        await audioPlayer.play();
+      } catch {
+        // Некоторые мобильные браузеры могут потребовать ещё одно нажатие.
+      }
+
+      updateMusicInfo();
+    }
+    function isVideoFile(path) {
+      return /\.(mp4|webm|mov)$/i.test(path);
+    }
+
+    function loadStory(index, autoplay = true) {
+      currentStory = Math.max(0, Math.min(stories.length - 1, index));
+      const story = stories[currentStory];
+
+      storyImage.classList.add("changing");
+
+      /* Фото показывается целиком, а свободное место заполняется его размытой копией. */
+      storyMedia.style.setProperty(
+          "--story-background",
+          isVideoFile(story.image)
+            ? "none"
+            : `url(${JSON.stringify(story.image)})`
+        );
+
+      window.setTimeout(() => {
+        if (isVideoFile(story.image)) {
+          storyImage.style.display = "none";
+
+          storyVideo.style.display = "block";
+          storyVideo.src = story.image;
+          storyVideo.muted = false;
+          storyVideo.volume = audioPlayer.volume;
+          storyVideo.loop = true;
+          storyVideo.playsInline = true;
+
+          storyVideo.play().catch(() => {
+            storyVideo.muted = true;
+          });
+        } else {
+          storyVideo.pause();
+          storyVideo.removeAttribute("src");
+          storyVideo.style.display = "none";
+
+          storyImage.style.display = "block";
+          storyImage.src = story.image;
+          storyImage.alt = story.title;
+        }
+
+        storyImage.classList.remove("changing");
+      }, 120);
+
+      storyCounter.textContent = `${currentStory + 1} / ${stories.length}`;
+      storyNowTitle.textContent = story.title;
+      storyKicker.textContent = story.kicker || "Наш момент";
+      storyShort.textContent = story.short || story.title;
+
+      createProgressSegments();
+      updateProgressVisual(0);
+
+      fullTextTitle.textContent = story.title;
+      fullText.textContent = story.text || "";
+
+      readMoreButton.hidden = !story.text;
+
+      loadAndPlayMusic();
+
+      if (autoplay) {
+        startProgress(true);
+      }
+    }
+
+    function animateViewerFromCard(card) {
+      const cardRect = card.getBoundingClientRect();
+      const shellRect = storyShell.getBoundingClientRect();
+
+      const dx =
+        cardRect.left + cardRect.width / 2 -
+        (shellRect.left + shellRect.width / 2);
+
+      const dy =
+        cardRect.top + cardRect.height / 2 -
+        (shellRect.top + shellRect.height / 2);
+
+      const sx = Math.max(0.1, cardRect.width / shellRect.width);
+      const sy = Math.max(0.1, cardRect.height / shellRect.height);
+
+      storyShell.animate(
+        [
+          {
+            transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`,
+            borderRadius: "22px",
+            opacity: 0.45
+          },
+          {
+            transform: "translate(0, 0) scale(1, 1)",
+            borderRadius: window.innerWidth >= 700 ? "28px" : "0px",
+            opacity: 1
+          }
+        ],
+        {
+          duration: 520,
+          easing: "cubic-bezier(.2,.8,.2,1)",
+          fill: "both"
+        }
+      );
+    }
+
+    function openStory(index, sourceCard) {
+      mode = "STORY";
+      currentStory = index;
+
+      storyViewer.style.display = "grid";
+      storyViewer.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        storyViewer.classList.add("visible");
+        animateViewerFromCard(sourceCard);
+      });
+
+      loadStory(index, true);
+    }
+
+    function closeStory() {
+      if (textModal.classList.contains("show")) {
+        closeText();
+        return;
+      }
+
+      cancelProgress();
+      textReading = false;
+      audioPlayer.pause();
+      updateMusicInfo();
+      volumeControl.classList.remove("open");
+
+      storyViewer.classList.remove("visible");
+      storyViewer.setAttribute("aria-hidden", "true");
+
+      storyShell.animate(
+        [
+          { transform: "scale(1)", opacity: 1 },
+          { transform: "scale(0.97)", opacity: 0 }
+        ],
+        {
+          duration: 260,
+          easing: "ease",
+          fill: "both"
+        }
+      );
+
+      window.setTimeout(() => {
+        storyViewer.style.display = "none";
+        mode = "MENU";
+      }, 260);
+    }
+
+    function nextStory() {
+      if (textReading) return;
+
+      if (currentStory >= stories.length - 1) {
+        closeStory();
+        return;
+      }
+
+      loadStory(currentStory + 1, true);
+    }
+
+    function previousStory() {
+      if (textReading) return;
+
+      if (currentStory <= 0) {
+        loadStory(0, true);
+        return;
+      }
+
+      loadStory(currentStory - 1, true);
+    }
+
+    function openText() {
+      if (textReading) return;
+
+      textReading = true;
+      pauseProgress();
+      textModal.style.display = "block";
+      textModal.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        textModal.classList.add("show");
+      });
+    }
+
+    function closeText() {
+      if (!textReading) return;
+
+      textModal.classList.remove("show");
+      textModal.setAttribute("aria-hidden", "true");
+
+      window.setTimeout(() => {
+        textModal.style.display = "none";
+        textReading = false;
+
+        if (mode === "STORY") {
+          resumeProgress();
+        }
+      }, 280);
+    }
+
+
+    function isControlTarget(target) {
+      return Boolean(
+        target.closest(
+          "button, a, .text-sheet, .story-details, .story-toolbar"
+        )
+      );
+    }
+
+    function onStoryPointerDown(event) {
+      pointerStartX = event.clientX;
+      pointerStartY = event.clientY;
+      pointerStartedOnControl = isControlTarget(event.target);
+    }
+
+    function onStoryPointerUp(event) {
+      if (textModal.classList.contains("show")) return;
+      if (pointerStartedOnControl || isControlTarget(event.target)) return;
+
+      const dx = event.clientX - pointerStartX;
+      const dy = event.clientY - pointerStartY;
+
+      if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy)) {
+        dx < 0 ? nextStory() : previousStory();
+        return;
+      }
+
+      if (Math.abs(dx) > 14 || Math.abs(dy) > 14) return;
+
+      const shellRect = storyShell.getBoundingClientRect();
+      const relativeX = (event.clientX - shellRect.left) / shellRect.width;
+
+      /*
+        Левая зона — предыдущая история.
+        Правая зона — следующая.
+        Центральная пустая зона — закрытие.
+      */
+      if (relativeX < 0.28) {
+        previousStory();
+      } else if (relativeX > 0.72) {
+        nextStory();
+      } else {
+        closeStory();
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((particle) => {
+        if (particle.moving && particle.targetX !== null && particle.targetY !== null) {
+          particle.x += (particle.targetX - particle.x) * (particle.ease || 0.035);
+          particle.y += (particle.targetY - particle.y) * (particle.ease || 0.035);
+        } else if (mode === "RAIN") {
+          particle.y += particle.speed;
+
+          if (particle.y > height + 24) {
+            particle.y = -24;
+            particle.x = Math.random() * width;
+          }
+        }
+
+        ctx.save();
+        ctx.globalAlpha = particle.alpha;
+        ctx.translate(particle.x, particle.y);
+        ctx.rotate(particle.rotation);
+        ctx.font = `${particle.size}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.fillStyle = "#ff7ca8";
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = "#ff4d88";
+        ctx.fillText(particle.symbol, 0, 0);
+        ctx.restore();
+      });
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    canvas.addEventListener("pointerdown", buildHeart);
+    openMemoryButton.addEventListener("click", openMemory);
+
+    closeStoryButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeStory();
+    });
+
+    readMoreButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      openText();
+    });
+
+    volumeButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      volumeControl.classList.toggle("open");
+    });
+
+    volumeSlider.addEventListener("input", (event) => {
+      event.stopPropagation();
+      setVolume(event.target.value);
+    });
+
+    volumeSlider.addEventListener("pointerdown", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("pointerdown", (event) => {
+      if (!volumeControl.contains(event.target)) {
+        volumeControl.classList.remove("open");
+      }
+    });
+
+    closeTextButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      closeText();
+    });
+
+    textModal.addEventListener("click", (event) => {
+      if (event.target === textModal) {
+        closeText();
+      }
+    });
+
+    textSheet.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    storyShell.addEventListener("pointerdown", onStoryPointerDown);
+    storyShell.addEventListener("pointerup", onStoryPointerUp);
+
+    audioPlayer.addEventListener("play", updateMusicInfo);
+    audioPlayer.addEventListener("pause", updateMusicInfo);
+    audioPlayer.addEventListener("ended", updateMusicInfo);
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+
+      if (mode === "MENU") {
+        configureGrid();
+      }
+    });
+
+    restoreVolume();
+    resizeCanvas();
+    createParticles();
+    animateParticles();
+  </script>
+</body>
+</html>
